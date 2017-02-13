@@ -106,21 +106,21 @@ def normalize_color(image_data):
     """
     return image_data/255.0 - 0.5
 
-def preprocess_image(image):
-    return cv2.resize(image, (64,32))
+def preprocess_image(image, shape):
+    return cv2.resize(image, (shape[1],shape[0]))
 
 def augment_image(image):
     '''
     '''
-    if(np.random.randint(2) > 0):
-        image = flip(image)
+    # if(np.random.randint(2) > 0):
+    #     image = flip(image)
     image = translate(image, np.random.uniform(-5,5),np.random.uniform(-5,5))
     image = rotate(image,np.random.uniform(-5,5))
     image = scale(image,np.random.uniform(0.8,1.2))
     image = np.array(image)
     return image
 
-def image_gen(batch_size, normalize=False, augment=True):
+def image_gen(batch_size, shape, normalize=False, augment=True):
     '''
     generator for a random batch with original and augmented data
     :param batch_size
@@ -130,7 +130,7 @@ def image_gen(batch_size, normalize=False, augment=True):
     batch_steerings = []
     batch_labels = []
     cameras = ['left' ,'center', 'right']
-    correction = [0.3, 0., -0.3]
+    correction = [0.25, 0., -0.25]
     while True:
         for idx, row in df.iterrows():
             #img_center = np.asarray(plt.imread(path + row['center']))
@@ -140,7 +140,7 @@ def image_gen(batch_size, normalize=False, augment=True):
             camera = cameras[cam_idx]
             # read images, there are some wrong spaces in the file strings
             image = plt.imread(path + row[camera].replace(' ', ''))
-            image = preprocess_image(image)
+            image = preprocess_image(image, shape)
             if augment:
                 image = augment_image(image)
             if normalize:
@@ -164,9 +164,9 @@ BATCH_SIZE = 256
 input_shape=(32,64,3)
 
 m = model(input_shape)
-m.fit_generator(image_gen(batch_size=BATCH_SIZE), \
-                samples_per_epoch=256*100, \
+m.fit_generator(image_gen(batch_size=BATCH_SIZE, shape=input_shape), \
+                samples_per_epoch=256*50, \
                 nb_epoch=N_EPOCHS, \
-                validation_data=image_gen(batch_size=1, augment=True), \
-                nb_val_samples=4096)
+                validation_data=image_gen(batch_size=1, shape=input_shape, augment=True), \
+                nb_val_samples=400)
 m.save('model.h5')
