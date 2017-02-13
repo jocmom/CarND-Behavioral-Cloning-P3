@@ -20,9 +20,8 @@ model = None
 prev_image_array = None
 
 import cv2
-def process_image(image):
-    return cv2.resize(image, (64,32))
-
+from model import preprocess_image
+from model import input_shape
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -37,7 +36,7 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        image_array = process_image(image_array)
+        image_array = preprocess_image(image_array, input_shape)
         print(image_array.shape)
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
         throttle = 0.2
