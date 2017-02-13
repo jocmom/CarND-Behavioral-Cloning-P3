@@ -11,39 +11,37 @@ from sklearn.model_selection import train_test_split
 import cv2
 
 from keras.models import Sequential
-from keras.layers import Convolution2D, MaxPooling2D, Flatten, ELU
+from keras.layers import Convolution2D, MaxPooling2D, Flatten, ELU, Cropping2D
 from keras.layers.core import Dense, Activation, Dropout
 from keras.optimizers import Adam
 from keras.layers import Lambda
 
 def model(input_shape):
     kernel_size = 3
+    conv_layers = [24,36,48]
+    dense_layer = [1024,128,64,16,8]
 
     model = Sequential()
     model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=input_shape))
-    # crop 16 pixels from top and bottom
-    #model.add(Cropping2D(cropping=((16,16), (0,0)), input_shape=(160,320,3)))
+    # crop pixels from top and bottom
+    # crop_top = int(input_shape[0]/6)
+    # crop_bot = int(input_shape[0]/8)
+    # model.add(Cropping2D(cropping=((crop_top,crop_bot), (0,0))))
     model.add(Convolution2D(3,1,1))
-    model.add(Convolution2D(24,kernel_size,kernel_size))
-    model.add(ELU())
-    model.add(MaxPooling2D())
-    model.add(Convolution2D(36,kernel_size,kernel_size))
-    model.add(ELU())
-    model.add(MaxPooling2D())
-    model.add(Convolution2D(48,kernel_size,kernel_size))
-    model.add(ELU())
-    model.add(MaxPooling2D())
+
+    for c in conv_layers:
+        model.add(Convolution2D(c, kernel_size, kernel_size))
+        model.add(ELU())
+        model.add(MaxPooling2D())
+
     model.add(Flatten())
-    model.add(Dense(1024))
-    model.add(ELU())
-    model.add(Dense(128))
-    model.add(ELU())
-    model.add(Dense(64))
-    model.add(ELU())
-    model.add(Dense(16))
-    model.add(ELU())
-    model.add(Dense(8))
-    model.add(ELU())
+
+    for d in dense_layer:
+        model.add(Dense(d))
+        model.add(ELU())
+        model.add(Dropout(0.5))
+
+
     model.add(Dense(1))
     model.compile(loss='mse', optimizer='Adam', lr=1e-4)
     return model
@@ -107,66 +105,65 @@ def normalize_color(image_data):
     return image_data/255.0 - 0.5
 
 def preprocess_image(image, shape):
+    # crop pixels from top and bottom
+    crop_top = int(shape[0]/5)
+    crop_bot = int(shape[0]/8)
+    image = image[32:140,:,:]
     return cv2.resize(image, (shape[1],shape[0]))
 
-def augment_image(image):
+def augment_image(image, output):
     '''
     '''
     # if(np.random.randint(2) > 0):
     #     image = flip(image)
-    image = translate(image, np.random.uniform(-5,5),np.random.uniform(-5,5))
-    image = rotate(image,np.random.uniform(-5,5))
-    image = scale(image,np.random.uniform(0.8,1.2))
+    #     output = -output
+    #image = translate(image, np.random.uniform(-5,5),np.random.uniform(-5,5))
+    #image = rotate(image,np.random.uniform(-5,5))
+    #image = scale(image,np.random.uniform(0.8,1.2))
     image = np.array(image)
-    return image
+    return image, output
 
 def image_gen(batch_size, shape, normalize=False, augment=True):
     '''
     generator for a random batch with original and augmented data
     :param batch_size
     '''
-    df = df_cars.sample(batch_size)
-    batch_images = []
-    batch_steerings = []
-    batch_labels = []
     cameras = ['left' ,'center', 'right']
     correction = [0.25, 0., -0.25]
     while True:
+        df = df_cars.sample(batch_size)
+        batch_images = []
+        batch_steerings = []
         for idx, row in df.iterrows():
-            #img_center = np.asarray(plt.imread(path + row['center']))
-
             # select left,right,center camera randomly
             cam_idx = np.random.randint(3)
             camera = cameras[cam_idx]
+            # get steering angle
+            steering = np.float32(row['steering'] + correction[cam_idx] )
             # read images, there are some wrong spaces in the file strings
             image = plt.imread(path + row[camera].replace(' ', ''))
             image = preprocess_image(image, shape)
             if augment:
-                image = augment_image(image)
+                image, steering = augment_image(image, steering)
             if normalize:
                 image = normalize_color(image)
-            steering = np.float32(row['steering'] + correction[cam_idx] )
-            label = np.sign(steering)
 
-            batch_labels.append(label)
             batch_images.append(image)
             batch_steerings.append(steering)
         yield np.array(batch_images), np.array(batch_steerings)
 
+N_EPOCHS = 10
+BATCH_SIZE = 64
+input_shape=(64,64,3)
+if __name__ == "__main__":
+    path = './own_data/'
+    df_cars = pandas.read_csv(path + 'driving_log.csv')
+    print("Number of images:", len(df_cars))
 
-path = './data/'
-df_cars = pandas.read_csv(path + 'driving_log.csv')
-print("Number of images:", len(df_cars))
-
-
-N_EPOCHS = 5
-BATCH_SIZE = 256
-input_shape=(32,64,3)
-
-m = model(input_shape)
-m.fit_generator(image_gen(batch_size=BATCH_SIZE, shape=input_shape), \
-                samples_per_epoch=256*50, \
-                nb_epoch=N_EPOCHS, \
-                validation_data=image_gen(batch_size=1, shape=input_shape, augment=True), \
-                nb_val_samples=400)
-m.save('model.h5')
+    m = model(input_shape)
+    m.fit_generator(image_gen(batch_size=BATCH_SIZE, shape=input_shape), \
+                    samples_per_epoch=256*50, \
+                    nb_epoch=N_EPOCHS, \
+                    validation_data=image_gen(batch_size=1, shape=input_shape, augment=True), \
+                    nb_val_samples=400)
+    m.save('model.h5')
