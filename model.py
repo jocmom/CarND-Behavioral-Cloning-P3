@@ -46,6 +46,33 @@ def model(input_shape):
     model.compile(loss='mse', optimizer='Adam', lr=1e-4)
     return model
 
+def nvidia_model(input_shape):
+    model = Sequential()
+    model.add(Lambda(lambda x: x/127.5 - 1., input_shape=input_shape))
+    model.add(Convolution2D(24,5,5, subsample=(2,2), border_mode='valid',init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(36,5,5, subsample=(2,2), border_mode='valid',init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(48,5,5, subsample=(2,2), border_mode='valid',init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(64,3,3, subsample=(1,1), border_mode='valid',init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(64,3,3, subsample=(1,1), border_mode='valid',init='he_normal'))
+    model.add(ELU())
+
+    model.add(Flatten())
+    model.add(Dense(1164, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(100, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(50, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(10, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(1))
+    model.compile(loss='mse', optimizer='Adam', lr=1e-4)
+    return model
+
 def translate(image, tx=0, ty=0):
     '''
     Translate/Shift an image by (tx, ty)
@@ -156,11 +183,12 @@ N_EPOCHS = 10
 BATCH_SIZE = 64
 input_shape=(64,64,3)
 if __name__ == "__main__":
-    path = './own_data/'
+    path = './data/'
     df_cars = pandas.read_csv(path + 'driving_log.csv')
     print("Number of images:", len(df_cars))
 
-    m = model(input_shape)
+    # m = model(input_shape)
+    m = nvidia_model(input_shape)
     m.fit_generator(image_gen(batch_size=BATCH_SIZE, shape=input_shape), \
                     samples_per_epoch=256*50, \
                     nb_epoch=N_EPOCHS, \
