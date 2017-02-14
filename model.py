@@ -15,6 +15,7 @@ from keras.layers import Convolution2D, MaxPooling2D, Flatten, ELU, Cropping2D
 from keras.layers.core import Dense, Activation, Dropout
 from keras.optimizers import Adam
 from keras.layers import Lambda
+from keras.callbacks import TensorBoard
 
 def model(input_shape):
     kernel_size = 3
@@ -114,9 +115,9 @@ def preprocess_image(image, shape):
 def augment_image(image, output):
     '''
     '''
-    # if(np.random.randint(2) > 0):
-    #     image = flip(image)
-    #     output = -output
+    if(np.random.randint(2) > 0):
+        image = flip(image)
+        output = -output
     #image = translate(image, np.random.uniform(-5,5),np.random.uniform(-5,5))
     #image = rotate(image,np.random.uniform(-5,5))
     #image = scale(image,np.random.uniform(0.8,1.2))
@@ -152,7 +153,7 @@ def image_gen(batch_size, shape, normalize=False, augment=True):
             batch_steerings.append(steering)
         yield np.array(batch_images), np.array(batch_steerings)
 
-N_EPOCHS = 10
+N_EPOCHS = 5
 BATCH_SIZE = 64
 input_shape=(64,64,3)
 if __name__ == "__main__":
@@ -165,5 +166,6 @@ if __name__ == "__main__":
                     samples_per_epoch=256*50, \
                     nb_epoch=N_EPOCHS, \
                     validation_data=image_gen(batch_size=1, shape=input_shape, augment=True), \
-                    nb_val_samples=400)
+                    nb_val_samples=400, \
+                    callbacks=[TensorBoard(log_dir='./tensorboard/behave')] )
     m.save('model.h5')
