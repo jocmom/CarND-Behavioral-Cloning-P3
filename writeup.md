@@ -21,7 +21,7 @@ The goals / steps of this project are the following:
 [brighten]: ./examples/brighten.png "Brighten Image Augmentation"
 [shift]: ./examples/shift.png "Shifted Image Augmentation"
 [flip]: ./examples/flip.png "Norma and Flipped Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
+[recovery]: ./examples/recovery.png "Recovery Image"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -92,21 +92,16 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+Here is a visualization of the architecture 
 
-![alt text][image1]
+![][nvidia_cnn]
 
 #### 3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded three laps on track one using center lane driving. Here is an example image of center lane driving:
-
-![alt text][image2]
-
+To capture good driving behavior, I first recorded three laps on track one using center lane driving. 
 I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to recover. These images show what a recovery looks like starting from left to right :
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+![][recovery]
 
 I randomly shuffled the data set and put 20% of the data into a validation set. 
 I didn't repeat this on track 2 because I think this track is for validation only and the learned model from track 1 should generalize on track 2
@@ -115,7 +110,6 @@ I didn't repeat this on track 2 because I think this track is for validation onl
 To augment the data sat, I also flipped images and angles thinking that this would improve generalization because track 1 has more left than right corners and flipping equlize this bias. When flipping the steering value has to be inverted. For example, here is an image that has then been flipped:
 
 ![][flip]
-
 #### Shifted Images
 I also shifted the images vertically. This is to simulate ascensions/descensions which is not relevant in track 1 but in track 2. I also tested to shift images horizontally but this had no positive effect. Probably it makes senses to adapt the steering value to the horizontally shifted images
 ![][shift]
