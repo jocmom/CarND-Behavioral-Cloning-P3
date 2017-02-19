@@ -19,9 +19,11 @@ The goals / steps of this project are the following:
 
 [nvidia_cnn]: ./examples/nvidia_cnn.png "Model Visualization"
 [brighten]: ./examples/brighten.png "Brighten Image Augmentation"
+[left_center_right]: ./examples/left_center_right.png "Left Center Right Images"
 [shift]: ./examples/shift.png "Shifted Image Augmentation"
 [flip]: ./examples/flip.png "Norma and Flipped Image"
 [recovery]: ./examples/recovery.png "Recovery Image"
+[steering_distribution]: ./examples/steering_distribution.png "Steering Distribution"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -90,7 +92,23 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 ####2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes:
+
+Conv1: 1x1x3 Inception layer 
+Conv2: 5x5x3 convolutional layer, stride length of 2
+Conv3: 5x5x24 convolutional layer, stride length of 2
+Conv4: 5x5x36 convolutional layer, stride length of 2
+Conv5: 3x3x48 convolutional layer, stride length of 1
+Conv6: 3x3x64 convolutional layer, stride length of 1
+Flatten1: Flatten layer
+FC1: 1164 fully connected layer
+Dropout1: 50% dropout layer
+FC2: 100 fully connected layer
+Dropout1: 50% dropout layer
+FC3: 50 fully connected layer
+FC4: 10 fully connected layer
+FC5: 1 output layer
+
 
 Here is a visualization of the architecture 
 
@@ -104,7 +122,18 @@ I then recorded the vehicle recovering from the left side and right sides of the
 ![][recovery]
 
 I randomly shuffled the data set and put 20% of the data into a validation set. 
-I didn't repeat this on track 2 because I think this track is for validation only and the learned model from track 1 should generalize on track 2
+I didn't repeat this on track 2 because I think this track is for validation only and the learned model from track 1 should generalize on track 2.
+
+#### Left and Right Camera Images
+There are three cameras placed in simulator car. One in the center, one left and one right. The left and right images can be used for recovery and I added 
+a steering value from 0.3 to the left and -0.3 to the right image.
+
+![][left_center_right]
+
+Here you can see the overall steering distribution. Maybe it makes sense to remove some images from the dataset having a steering angle around 0 to reduce 
+bias to this angle and ease recovery. 
+
+![][steering_distribution]
 
 #### Flipped Images
 To augment the data sat, I also flipped images and angles thinking that this would improve generalization because track 1 has more left than right corners and flipping equlize this bias. When flipping the steering value has to be inverted. For example, here is an image that has then been flipped:
