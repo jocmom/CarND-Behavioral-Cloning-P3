@@ -94,20 +94,20 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes:
 
-Conv1: 1x1x3 Inception layer 
-Conv2: 5x5x3 convolutional layer, stride length of 2
-Conv3: 5x5x24 convolutional layer, stride length of 2
-Conv4: 5x5x36 convolutional layer, stride length of 2
-Conv5: 3x3x48 convolutional layer, stride length of 1
-Conv6: 3x3x64 convolutional layer, stride length of 1
-Flatten1: Flatten layer
-FC1: 1164 fully connected layer
-Dropout1: 50% dropout layer
-FC2: 100 fully connected layer
-Dropout1: 50% dropout layer
-FC3: 50 fully connected layer
-FC4: 10 fully connected layer
-FC5: 1 output layer
+- Conv1: 1x1x3 Inception layer 
+- Conv2: 5x5x3 convolutional layer, stride length of 2
+- Conv3: 5x5x24 convolutional layer, stride length of 2
+- Conv4: 5x5x36 convolutional layer, stride length of 2
+- Conv5: 3x3x48 convolutional layer, stride length of 1
+- Conv6: 3x3x64 convolutional layer, stride length of 1
+- Flatten1: Flatten layer
+- FC1: 1164 fully connected layer
+- Dropout1: 50% dropout layer
+- FC2: 100 fully connected layer
+- Dropout2: 50% dropout layer
+- FC3: 50 fully connected layer
+- FC4: 10 fully connected layer
+- FC5: 1 output layer
 
 
 Here is a visualization of the architecture 
